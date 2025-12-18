@@ -97,3 +97,23 @@ gemini_docs_mcp/
     ├── index.json            # 文档索引
     └── *.txt                 # 文档文件
 ```
+
+# test
+
+```bash
+cat << 'EOF' | uv run --directory /root/gemini_docs_mcp python main.py
+{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}
+{"jsonrpc": "2.0", "method": "notifications/initialized"}
+{"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
+{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "get_all_resources", "arguments": {}}}
+EOF
+```
+
+```bash
+$ cat << 'EOF' | uv run --directory /root/gemini_docs_mcp python main.py 2>/dev/null
+{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}
+{"jsonrpc": "2.0", "method": "notifications/initialized"}
+{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "get_all_resources", "arguments": {}}}
+{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "get_docs_info", "arguments": {"doc_id": "tauri2.0/llms.txt", "prompt": "Tauri 2.0 的安全特性有哪些？简单列出要点"}}}
+EOF
+```
