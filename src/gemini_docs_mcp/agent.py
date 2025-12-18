@@ -54,4 +54,5 @@ Documentation content:
     )
 
     result = crew.kickoff()
+    print(f"[DEBUG] CrewAI result type: {type(result)}, value: {result}")
     return str(result)

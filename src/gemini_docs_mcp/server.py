@@ -21,14 +21,14 @@ transport_security = TransportSecuritySettings(enable_dns_rebinding_protection=F
 mcp = FastMCP("gemini-docs-mcp", transport_security=transport_security)
 
 
-@mcp.tool()
+@mcp.tool(structured_output=False)
 def get_all_resources() -> str:
     """Get a list of all available documents with their id, name, and description."""
     docs = get_all_docs()
     return json.dumps(docs, indent=2)
 
 
-@mcp.tool()
+@mcp.tool(structured_output=False)
 def get_docs_info(doc_id: str, prompt: str) -> str:
     """Get information from a specific document by querying it with a prompt.
 
