@@ -7,7 +7,6 @@ from pathlib import Path
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
-from mcp.types import TextContent
 
 # Load .env from project root
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
@@ -23,14 +22,14 @@ mcp = FastMCP("gemini-docs-mcp", transport_security=transport_security)
 
 
 @mcp.tool()
-def get_all_resources() -> list[TextContent]:
+def get_all_resources() -> str:
     """Get a list of all available documents with their id, name, and description."""
     docs = get_all_docs()
-    return [TextContent(type="text", text=json.dumps(docs, indent=2))]
+    return json.dumps(docs, indent=2)
 
 
 @mcp.tool()
-def get_docs_info(doc_id: str, prompt: str) -> list[TextContent]:
+def get_docs_info(doc_id: str, prompt: str) -> str:
     """Get information from a specific document by querying it with a prompt.
 
     Args:
@@ -38,17 +37,13 @@ def get_docs_info(doc_id: str, prompt: str) -> list[TextContent]:
         prompt: The prompt/question to ask about the document
     """
     if not doc_id or not prompt:
-        return [TextContent(type="text", text="Error: doc_id and prompt are required")]
+        return "Error: doc_id and prompt are required"
 
     content = get_doc_content(doc_id)
     if content is None:
-        return [
-            TextContent(
-                type="text", text=f"Error: Document with id '{doc_id}' not found"
-            )
-        ]
+        return f"Error: Document with id '{doc_id}' not found"
 
-    return [TextContent(type="text", text=query_docs(content, prompt))]
+    return query_docs(content, prompt)
 
 
 def main():
