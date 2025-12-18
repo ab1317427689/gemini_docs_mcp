@@ -47,9 +47,14 @@ uv run python main.py
   "mcpServers": {
     "gemini-docs": {
       "command": "uv",
-      "args": ["run", "python", "main.py"],
-      "cwd": "/path/to/gemini_docs_mcp"
-    }
+      "args": [
+        "run",
+        "--directory",
+        "/root/gemini_docs_mcp",
+        "python",
+        "main.py"
+      ]
+    },
   }
 }
 ```
