@@ -1,0 +1,20 @@
+[project]
+name = "gemini-docs-mcp"
+version = "0.1.0"
+description = "MCP server that uses Gemini as RAG for documentation"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "crewai>=1.6.1",
+    "httpx>=0.28.1",
+    "litellm>=1.80.10",
+    "mcp>=1.24.0",
+    "pydantic>=2.12.5",
+    "python-dotenv>=1.2.1",
+]
+
+[project.scripts]
+gemini-docs-mcp = "src.gemini_docs_mcp.server:main"
+
+[dependency-groups]
+dev = []
