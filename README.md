@@ -32,34 +32,54 @@ uv run python scripts/upload_doc.py \
   --description "tauri2.0 document"
 ```
 
-### 2. 运行 MCP 服务器
+### 2. 启动 HTTP 服务器
 
 ```bash
-uv run python main.py
+uv run python main.py --http
 ```
 
-## Claude Code 配置
+服务器将在 `http://0.0.0.0:8000/mcp` 启动。
 
-在 `~/.claude/claude_desktop_config.json` 中添加：
+## 客户端配置
+
+### OpenCode
+
+```json
+{
+  "mcp": {
+    "gemini-docs": {
+      "type": "remote",
+      "enabled": true,
+      "url": "http://localhost:8000/mcp"
+    }
+  }
+}
+```
+
+### Claude Desktop
 
 ```json
 {
   "mcpServers": {
     "gemini-docs": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--directory",
-        "/root/gemini_docs_mcp",
-        "python",
-        "main.py"
-      ]
-    },
+      "type": "remote",
+      "url": "http://localhost:8000/mcp"
+    }
   }
 }
 ```
 
-> 注：API Key 已在 `.env` 文件中配置，无需在此重复设置。
+### 远程访问
+
+如果从其他机器访问，将 `localhost` 替换为服务器 IP：
+
+```json
+{
+  "url": "http://172.24.162.99:8000/mcp"
+}
+```
+
+> 注：API Key 已在 `.env` 文件中配置，无需在客户端重复设置。
 
 ## MCP 工具
 
@@ -76,7 +96,7 @@ uv run python main.py
 根据文档 ID 和提示词查询文档内容。
 
 **参数**：
-- `doc_id`: 文档 ID（如 `langchain/llms.txt`）
+- `doc_id`: 文档 ID（如 `tauri2.0/llms.txt`）
 - `prompt`: 查询提示词
 
 **返回**：Gemini 基于文档内容的回答
@@ -88,7 +108,7 @@ gemini_docs_mcp/
 ├── main.py                   # MCP Server 入口
 ├── src/
 │   └── gemini_docs_mcp/
-│       ├── server.py         # MCP Server 核心
+│       ├── server.py         # MCP Server 核心（FastMCP）
 │       ├── agent.py          # CrewAI + OpenRouter
 │       └── docs.py           # 文档管理
 ├── scripts/
@@ -96,24 +116,4 @@ gemini_docs_mcp/
 └── docs/                     # 文档存储
     ├── index.json            # 文档索引
     └── *.txt                 # 文档文件
-```
-
-# test
-
-```bash
-cat << 'EOF' | uv run --directory /root/gemini_docs_mcp python main.py
-{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}
-{"jsonrpc": "2.0", "method": "notifications/initialized"}
-{"jsonrpc": "2.0", "id": 2, "method": "tools/list", "params": {}}
-{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "get_all_resources", "arguments": {}}}
-EOF
-```
-
-```bash
-$ cat << 'EOF' | uv run --directory /root/gemini_docs_mcp python main.py 2>/dev/null
-{"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "test-client", "version": "1.0.0"}}}
-{"jsonrpc": "2.0", "method": "notifications/initialized"}
-{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "get_all_resources", "arguments": {}}}
-{"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "get_docs_info", "arguments": {"doc_id": "tauri2.0/llms.txt", "prompt": "Tauri 2.0 的安全特性有哪些？简单列出要点"}}}
-EOF
 ```
