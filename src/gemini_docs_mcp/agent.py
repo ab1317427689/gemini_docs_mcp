@@ -20,7 +20,7 @@ def query_docs(doc_content: str, prompt: str) -> str:
         raise ValueError("OPENROUTER_API_KEY environment variable is not set")
 
     llm = LLM(
-        model="openrouter/google/gemini-3-flash-preview",
+        model="openrouter/x-ai/grok-4.1-fast",
         api_key=api_key,
     )
 
