@@ -99,3 +99,35 @@ def add_doc(doc_id: str, name: str, content: str, description: str = "") -> dict
     save_index(index)
 
     return doc_entry
+
+
+def delete_doc(doc_id: str) -> bool:
+    """Delete a doc - remove file and update index."""
+    index = load_index()
+
+    # Check if doc exists in index
+    docs = index.get("docs", [])
+    doc_to_delete = next((doc for doc in docs if doc["id"] == doc_id), None)
+
+    if not doc_to_delete:
+        return False
+
+    # Remove from index
+    index["docs"] = [doc for doc in docs if doc["id"] != doc_id]
+    save_index(index)
+
+    # Delete the physical file
+    doc_path = DOCS_DIR / doc_id
+    if doc_path.exists():
+        try:
+            doc_path.unlink()
+
+            # Clean up empty parent directories up to DOCS_DIR
+            parent = doc_path.parent
+            while parent != DOCS_DIR and parent.is_dir() and not any(parent.iterdir()):
+                parent.rmdir()
+                parent = parent.parent
+        except OSError:
+            pass
+
+    return True
