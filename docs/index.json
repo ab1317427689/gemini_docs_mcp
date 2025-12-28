@@ -27,6 +27,13 @@
       "description": "crewai document",
       "path": "crewai/llms.txt",
       "updated_at": "2025-12-28T03:02:08Z"
+    },
+    {
+      "id": "crawl4ai/llms.txt",
+      "name": "crawl4ai_docs",
+      "description": "crawl4ai document",
+      "path": "crawl4ai/llms.txt",
+      "updated_at": "2025-12-28T06:37:36Z"
     }
   ]
 }
