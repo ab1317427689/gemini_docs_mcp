@@ -19,6 +19,7 @@
 3. **启动服务**:
    ```bash
    uv run python main.py --http
+   nohup uv run python main.py --http  2>&1 | split -b 100M -d - log_prefix_ &
    ```
 
 ## 访问路径
