@@ -1,0 +1,7 @@
+INFO:     Started server process [1073715]
+INFO:     Waiting for application startup.
+[12/28/25 16:15:37] INFO     StreamableHTTP       streamable_http_manager.py:115
+                             session manager                                    
+                             started                                            
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)

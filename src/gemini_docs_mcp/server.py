@@ -7,11 +7,11 @@ from pathlib import Path
 from typing import Optional
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Depends, Header, Form, UploadFile, File
-from fastapi.responses import HTMLResponse
 from mcp.server.fastmcp import FastMCP
 from mcp.server.transport_security import TransportSecuritySettings
-import uvicorn
+from starlette.requests import Request
+from starlette.responses import HTMLResponse, JSONResponse, Response
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 # Load .env from project root
 PROJECT_ROOT = Path(__file__).parent.parent.parent
@@ -48,61 +48,81 @@ def get_docs_info(doc_id: str, prompt: str) -> str:
     return query_docs(content, prompt)
 
 
-# --- Admin API & UI Implementation ---
-app = FastAPI(title="Gemini Docs MCP Admin")
-
-# Integrate MCP routes into our main FastAPI app
-mcp_app = mcp.streamable_http_app()
-app.router.routes.extend(mcp_app.routes)
+# --- Admin API & UI Implementation using custom_route ---
 
 
-async def verify_admin(x_admin_password: Optional[str] = Header(None)):
-    """Simple password verification dependency."""
-    if x_admin_password != ADMIN_PASSWORD:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return True
+def verify_admin(request: Request) -> bool:
+    """Check if the X-Admin-Password header matches."""
+    auth_header = request.headers.get("X-Admin-Password")
+    return auth_header == ADMIN_PASSWORD
 
 
-@app.get("/admin", response_class=HTMLResponse)
-async def admin_page():
+@mcp.custom_route("/admin", methods=["GET"])
+async def admin_page(request: Request) -> Response:
     """Return the admin management page."""
     admin_html_path = Path(__file__).parent / "admin.html"
     if not admin_html_path.exists():
         return HTMLResponse(content="<h1>Admin Page not found</h1>", status_code=404)
-    return admin_html_path.read_text(encoding="utf-8")
+    return HTMLResponse(content=admin_html_path.read_text(encoding="utf-8"))
 
 
-@app.get("/api/docs")
-async def api_get_docs(_: bool = Depends(verify_admin)):
+@mcp.custom_route("/api/docs", methods=["GET"])
+async def api_get_docs(request: Request) -> Response:
     """List all documents."""
-    return {"docs": get_all_docs()}
+    if not verify_admin(request):
+        return JSONResponse({"detail": "Unauthorized"}, status_code=401)
+    return JSONResponse({"docs": get_all_docs()})
 
 
-@app.post("/api/upload")
-async def api_upload_doc(
-    file: UploadFile = File(...),
-    doc_id: str = Form(...),
-    name: str = Form(...),
-    description: str = Form(""),
-    _: bool = Depends(verify_admin),
-):
+@mcp.custom_route("/api/upload", methods=["POST"])
+async def api_upload_doc(request: Request) -> Response:
     """Handle document upload from web UI."""
+    if not verify_admin(request):
+        return JSONResponse({"detail": "Unauthorized"}, status_code=401)
+
     try:
-        content = await file.read()
+        form = await request.form()
+        file_field = form.get("file")
+        doc_id_field = form.get("doc_id")
+        name_field = form.get("name")
+        description_field = form.get("description", "")
+
+        if (
+            not isinstance(file_field, StarletteUploadFile)
+            or not doc_id_field
+            or not name_field
+        ):
+            return JSONResponse(
+                {"detail": "Missing required fields or invalid file"}, status_code=400
+            )
+
+        doc_id = str(doc_id_field)
+        name = str(name_field)
+        description = str(description_field)
+
+        content = await file_field.read()
         text_content = content.decode("utf-8")
         doc_entry = add_doc(doc_id, name, text_content, description)
-        return {"status": "success", "doc": doc_entry}
+        return JSONResponse({"status": "success", "doc": doc_entry})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse({"detail": str(e)}, status_code=500)
 
 
-@app.delete("/api/docs/{doc_id:path}")
-async def api_delete_doc(doc_id: str, _: bool = Depends(verify_admin)):
+@mcp.custom_route("/api/docs/{doc_id:path}", methods=["DELETE"])
+async def api_delete_doc(request: Request) -> Response:
     """Handle document deletion from web UI."""
+    if not verify_admin(request):
+        return JSONResponse({"detail": "Unauthorized"}, status_code=401)
+
+    # Path params are in request.path_params
+    doc_id = request.path_params.get("doc_id")
+    if not doc_id:
+        return JSONResponse({"detail": "Missing doc_id"}, status_code=400)
+
     success = delete_doc(doc_id)
     if not success:
-        raise HTTPException(status_code=404, detail="Document not found")
-    return {"status": "success"}
+        return JSONResponse({"detail": "Document not found"}, status_code=404)
+    return JSONResponse({"status": "success"})
 
 
 def main():
@@ -110,10 +130,13 @@ def main():
     host = "0.0.0.0"
     port = 8000
 
-    if "--http" in sys.argv:
+    if "--http" in sys.argv or True:
         print(f"Starting Gemini Docs MCP with Admin UI at http://{host}:{port}/admin")
         print(f"MCP endpoint at http://{host}:{port}/mcp")
-        uvicorn.run(app, host=host, port=port)
+        # FastMCP.run() handles the lifecycle and initializes the task group
+        mcp.settings.host = host
+        mcp.settings.port = port
+        mcp.run(transport="streamable-http")
     else:
         mcp.run(transport="stdio")
 
