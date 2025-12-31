@@ -5,7 +5,7 @@ import os
 from crewai import LLM, Agent, Crew, Task
 
 
-def query_docs(doc_content: str, prompt: str) -> str:
+async def query_docs(doc_content: str, prompt: str) -> str:
     """Query documentation content using a CrewAI agent.
 
     Args:
@@ -53,6 +53,6 @@ Documentation content:
         verbose=False,
     )
 
-    result = crew.kickoff()
+    result = await crew.kickoff_async()
     print(f"[DEBUG] CrewAI result type: {type(result)}, value: {result}")
     return str(result)

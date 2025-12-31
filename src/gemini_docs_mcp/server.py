@@ -38,14 +38,14 @@ def get_all_resources() -> str:
 
 
 @mcp.tool(structured_output=False)
-def get_docs_info(doc_id: str, prompt: str) -> str:
+async def get_docs_info(doc_id: str, prompt: str) -> str:
     """Get information from a specific document by querying it with a prompt."""
     if not doc_id or not prompt:
         return "Error: doc_id and prompt are required"
     content = get_doc_content(doc_id)
     if content is None:
         return f"Error: Document with id '{doc_id}' not found"
-    return query_docs(content, prompt)
+    return await query_docs(content, prompt)
 
 
 # --- Admin API & UI Implementation using custom_route ---
