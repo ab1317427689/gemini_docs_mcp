@@ -1,13 +1,6 @@
 {
   "docs": [
     {
-      "id": "test/example.txt",
-      "name": "Test Document",
-      "description": "A test document",
-      "path": "test/example.txt",
-      "updated_at": "2025-12-18T11:00:52Z"
-    },
-    {
       "id": "tauri2.0/llms.txt",
       "name": "tauri2.0_docs",
       "description": "tauri2.0 document",
@@ -38,9 +31,9 @@
     {
       "id": "autogen/autogen_full_docs.txt",
       "name": "autogen_full_docs",
-      "description": "autogen_full_docs",
+      "description": "autogen document",
       "path": "autogen/autogen_full_docs.txt",
-      "updated_at": "2025-12-28T08:23:52Z"
+      "updated_at": "2025-12-29T04:24:35Z"
     }
   ]
 }
