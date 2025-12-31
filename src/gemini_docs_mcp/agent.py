@@ -22,6 +22,7 @@ async def query_docs(doc_content: str, prompt: str) -> str:
     llm = LLM(
         model="openrouter/x-ai/grok-4.1-fast",
         api_key=api_key,
+        streaming=False,
     )
 
     agent = Agent(
